@@ -1,5 +1,5 @@
 ---
-title: "The importance of accounting for model discrepancy"
+title: "Derivatives of GPs"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -8,6 +8,8 @@ urlcolor: blue
 bibliography: references.bib
 link-citations: yes
 linkcolor: blue
+nocite: |
+  @kennedy01
 
 header-includes:
   - \usepackage{amsmath}
@@ -19,7 +21,7 @@ header-includes:
 
 # Premise
 
-This example comes from @brynjarsdottir14. It is intended to demonstrate the importance of incorporating model discrepancy when attempting to learning about model parameters through calibration.
+This example comes from @brynjarsdottir14. It is intended to demonstrate the importance of incorporating model discrepancy when attempting to learn about model parameters through calibration.
 
 A real-life process is given by the equation
 \begin{equation}
@@ -269,7 +271,7 @@ plot_function(control_inputs_m, obs_errors_m, obs_m, mean_m, "red")
 plot_function(control_inputs_l, obs_errors_l, obs_l, mean_l, "green")
 ```
 
-Allowing for a larger variance of measurement errors will lead to wider posterior credible intervals for $\theta$, but taking more observations narrows them again -- no matter the size of the measure error variance, there will be a value of $n$ above which the posterior credible interval no longer captures $\theta$. In other words, increasing $n$ narrows the posterior credible interval around a wrong value of $\theta$ - this bias cannot be corrected by taking more observations, and is due to a source of uncertainty we have not factored in: **model discrepancy**.
+Allowing for a larger variance of measurement errors will lead to wider posterior credible intervals for $\theta$, but taking more observations narrows them again -- no matter the size of the measure error variance, there will be a value of $n$ above which the posterior credible interval no longer captures $\theta$. In other words, increasing $n$ narrows the posterior credible interval around a wrong value of $\theta$ -- this bias cannot be corrected by taking more observations, and is due to a source of uncertainty we have not factored in: **model discrepancy**.
 
 When we use the model in Equation (\textcolor{red}{2}) to predict the value of the real life process at $x_0 =$ `r x_0_int` (interpolation) and at $x_0 =$ `r x_0_ext` (extrapolation), we see Figures 3 (b) and (c). Once again, the more data we collect, the more sure we become about the wrong value, with 90% posterior credible intervals failing to capture the true value for all three samples.
 
@@ -554,27 +556,33 @@ draw_samples <- function(x, N, kernel_fn, ...) {
 }
 ```
 
-If we instead do this in `rstan`^[Using https://mc-stan.org/docs/2_19/stan-users-guide/simulating-from-a-gaussian-process.html.], we must first run a `stan` block:
+```{r, include=FALSE}
+ident_mult <- 0.001
+```
 
-(Mention why we need the 0.001 term.)
+If we instead do this in `rstan`^[Using https://mc-stan.org/docs/2_19/stan-users-guide/simulating-from-a-gaussian-process.html.], we must first run the following `stan` block. Note that we add a small multiple of the identity matrix to the covariance matrix (here set to a value of `r ident_mult`) for computational stability when inverting the covariance matrix, particularly a problem if two or more of the input values are "close together" in input space^[Note that a small value is sometimes added to the diagonal of a correlation matrix when building an emulator but for a different reason, and in this case is referred to as the _nugget term_: it represents added noise, allowing for variability at the training data points. If you have a deterministic model, when you repeat a simulation you should get the same output and so have no noise at the training data. However, with some models (for example, a cloud simulation model) they can have a stochastic element to them, and running at the same settings can give slightly different outputs. Adding the nugget term means that the mean function of the fitted posterior emulator doesn't have to go directly through the training points, and this can lead to a smoother fit.]
+-- see @rasmussen06 and Figure 7 below from Jeremy.
+
+![Why we need to add a small multiple of the identity matrix to the covaraince matrix (JO).](./ident_mult.jpg){width=50%}
 
 ```{stan, gp-prior-setup-with-stan, output.var="gpstan", include=T, cache=TRUE}
 data {
   int<lower=1> n;
   array[n] real x;
   real l;
+  real ident_mult;
 }
 transformed data {
   matrix[n, n] K;
   vector[n] mu = rep_vector(0, n);
   for (i in 1:(n - 1)) {
-    K[i, i] = 1 + 0.001;
+    K[i, i] = 1 + ident_mult;
     for (j in (i + 1):n) {
       K[i, j] = exp(-0.5 * square((x[i] - x[j]) / l));
       K[j, i] = K[i, j];
     }
   }
-  K[n, n] = 1 + 0.001;
+  K[n, n] = 1 + ident_mult;
 }
 parameters {
   vector[n] y;
@@ -619,7 +627,8 @@ for (i in 1:2) {
 data_gp <- list(n = length(x), 
                # z = as.vector(obs_m), 
                x = x,
-               l = Psi[i])
+               l = Psi[i],
+               ident_mult = 0.001)
 
 fit_gp <- sampling(gpstan, 
                 data = data_gp,
@@ -692,7 +701,7 @@ generated quantities {
 }
 ```
 
-```{r md-posterior-draws-with-stan, include=F}
+```{r md-posterior-draws-with-stan, include=F, cache=TRUE}
 sampling_iterations <- 1e4
 table_1_values <- data.frame(rep(NA, 3), rep(NA, 3), rep(NA, 3), rep(NA, 3), rep(NA, 3))
 rownames(table_1_values) <- c("11 obs.", "31 obs.", "61 obs.")

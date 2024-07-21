@@ -1,0 +1,9 @@
+gridExtra
+glue
+common
+StanHeaders
+rstan
+MASS
+plyr
+reshape2
+ggplot2
