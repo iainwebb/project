@@ -441,6 +441,14 @@ fig2d
 
 # How to compare the alignment of two contour plots
 
+df <- expand.grid(x=seq(-2, 2, .1), y=seq(-2, 2, .1)); k=2; b=4
+df$z <- with(df, (y^2)-(x^2) )
+library(raster)
+library(rasterVis)
+r <- rasterFromXYZ(df)
+projection(r) <- CRS("+proj=longlat +datum=WGS84")
+vectorplot(r, par.settings=RdBuTheme)
+
 \newpage
 
 # Citations
