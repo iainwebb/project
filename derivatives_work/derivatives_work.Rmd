@@ -22,7 +22,7 @@ header-includes:
 Two things need understanding:
 
 - how the GP representation of a derivative of an unknown function represented by a GP is related to the GP representation of the function, 
-- how to compare the alignment of two contour plots.
+- how to compare the alignment of two gradient fields.
 
 # How the GP representation of a derivative of an unknown function represented by a GP is related to the GP representation of the function
 
@@ -34,9 +34,9 @@ The following is taken from https://www.r-bloggers.com/2012/04/gaussian-process-
 
 Chapter 2 of Rasmussen and Williams (\textcolor{blue}{2006}) provides a detailed explanation of the math for Gaussian process regression.  It doesn't provide much in the way of code though.  This Gist is a brief demo of the basic elements of Gaussian process regression, as described on pages 13 to 16.
   
-\end{tcolorbox, cache=T}
+\end{tcolorbox}
 
-```{r, load_packages, include=F, cache=T}
+```{r, load_packages, include=F}
 # Load in the required libraries for data manipulation
 # and multivariate normal distribution
 require(MASS)
@@ -74,7 +74,7 @@ x.star_s <- seq(0,2*pi, len=x_pts_num_s)
 k.xsxs_s <- calcSigma(x.star_s,x.star_s)
 ```
 
-```{r, include=T}
+```{r, echo=F}
 # Utility function to print matrices in proper LaTeX format
 print_mat <- function(mat) {
   n <- nrow(mat)
@@ -114,7 +114,7 @@ x.star <- seq(0,2*pi, len=x_pts_num)
 k.xsxs <- calcSigma(x.star,x.star)
 ```
 
-Plotting some sample functions drawn from the the zero-mean Gaussian process prior with the aforementioned covariance matrix gives us an idea of the type of functions it specifies:
+Figure 1 plots some sample functions drawn from the the zero-mean Gaussian process prior with the aforementioned covariance matrix in order to give an idea of the type of functions it specifies.
 
 ```{r, include=F, cache=T}
 # Generate a number of functions from the process
@@ -148,7 +148,7 @@ fig2a
 n <- 5
 ```
 
-Next, we'll generate `r n` data points using the $\sin(x)$ function in the range $x \in [0.2, 2\pi]$, imagining that that is the underlying real-like function we're interested in learning about. Some observation error is included too. The observations are denoted $z$ and the associated input values $x$. The $\sin(x)$ function is thus acting as the underlying real-life process. The observations produced are shown in Figure 2.
+Next, we'll generate `r n` data points using the $\sin(x)$ function in the range $x \in [0.2, 2\pi]$, imagining that that is the underlying real-like function we're interested in learning about. Some $N(0, 0.1^2)$ observation error is included too. The observations are denoted $z$ and the associated input values $x$. The observations produced are shown in Figure 2.
 
 ```{r real life process function, include=F, cache=T}
 real_life_process <- function(x){
@@ -185,7 +185,14 @@ fig <- ggplot(f, aes(control_inputs, obs)) +
 fig
 ```
 
-To specify the posterior GP distribution, we need three further covariance matrices: $k(x, x)$, $k(x, x^*)$ and $k(x^*, x)$. These are calculated as per Equation (2.19) in @rasmussen06.
+To specify the posterior GP distribution, we need three further covariance matrices: $k(x, x)$, $k(x, x^*)$ and $k(x^*, x)$. 
+
+The posterior distribution is derived using Equation (2.19) in @rasmussen06:
+
+\begin{align*}
+\mathbf{f}^* | x^*, x, \mathbf{f} \sim N(k(x^*,x) k(x,x)^{-1}\mathbf{y}, \\
+k(x^*, x^*) - k(x^*,x)k(x,x)^{-1}k(x,x^*))
+\end{align*}
 
 ```{r, include=F, cache=T}
 x <- f$control_inputs
@@ -439,15 +446,76 @@ fig2d
 
 \newpage
 
-# How to compare the alignment of two contour plots
+# How to compare the alignment of two gradient fields
 
-df <- expand.grid(x=seq(-2, 2, .1), y=seq(-2, 2, .1)); k=2; b=4
-df$z <- with(df, (y^2)-(x^2) )
-library(raster)
-library(rasterVis)
-r <- rasterFromXYZ(df)
-projection(r) <- CRS("+proj=longlat +datum=WGS84")
-vectorplot(r, par.settings=RdBuTheme)
+Assume underlying function
+
+$$
+f(x) =   x_1^2 x_2
+$$
+
+with partial derivatives
+
+$$
+\frac{d}{d\mathbf{x}}f(x) =  
+\begin{bmatrix}
+\dfrac{\partial}{\partial x_1}f(x)\\
+\dfrac{\partial}{\partial x_2}f(x)
+\end{bmatrix}
+=
+\begin{bmatrix}
+2x_1 x_2\\
+x_1^2
+\end{bmatrix}.
+$$
+
+On an $11 \times 11$ grid with $x_1$ and $x_2$ values of $\{-5, -4, \dots, 5\}$, this returns the following gradient vectors:
+
+```{r, echo=F}
+f1 <- expression(
+  x1^2*x2
+)
+# D(f1, "x1")
+# D(f1, "x2")
+Df1_x1 <- function(x1, x2){
+  2 * x1 * x2    
+}
+Df1_x2 <- function(x1, x2){
+  x1^2   
+}
+
+df1 <- expand.grid(x1=seq(-5, 5, 1), x2=seq(-5, 5, 1))
+df1$vx1 <- with(df1, Df1_x1(x1, x2))
+df1$vx2 <- with(df1, Df1_x2(x1, x2))
+
+library(grid)
+arrow_scale <- 50
+ggplot(df1, aes(x = x1, y = x2)) +
+  geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
+               arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
+
+```
+
+Contrasting that with a field with exactly the opposite sign to this one:
+
+```{r, echo=F}
+df2 <- df1
+df2$vx1 <- -(df2$vx1)
+df2$vx2 <- -(df2$vx2)
+ggplot(df2, aes(x = x1, y = x2)) +
+  geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
+               arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
+
+```
+
+```{r}
+df1$vx1 * df2$vx1
+```
+
+
+
+
+
 
 \newpage
 
