@@ -28,7 +28,7 @@ Two things need understanding:
 
 ## Fitting a GP in `R`
 
-The following is taken from https://www.r-bloggers.com/2012/04/gaussian-process-regression-with-r, a demo of Gaussian process regression with R by James Keirstead (5 April 2012). He writes:
+The following is taken from @Keirstead_2012, a demo of Gaussian process regression with R by James Keirstead (5 April 2012). He writes:
 
 \begin{tcolorbox}
 
@@ -52,7 +52,7 @@ x_pts_num <- 50
 x_pts_num_s <- 10
 ```
 
-First for a (dense) set of `r x_pts_num` regularly-spaced input values (denoted $x^*$) we populate the covariance matrix using the chosen covariance function, or *kernel*, $k(\cdot, \cdot)$, in this case the squared exponential with length parameter $\Psi = 1$. One such covariance matrix $k(x^*, x^*)$ is printed below, but for only `r x_pts_num_s` points.
+First for a (dense) set of `r x_pts_num` regularly-spaced input values (denoted $x^*$) we populate the covariance matrix using the chosen covariance function, or *kernel*, $k(\cdot, \cdot)$, in this case the squared exponential with length parameter $\Psi = 1$. One such covariance matrix $k(x^*, x^*)$ is printed below, but for only `r x_pts_num_s` regularly-spaced points, rather than the `r x_pts_num` used in the remaining of the work below:
 <!-- Although the nested loops are ugly, I've checked and it's about 30% faster than a solution using expand.grid() and apply() -->
 
 ```{r covariance_matrix_small, include=F, cache=T}
@@ -148,7 +148,7 @@ fig2a
 n <- 5
 ```
 
-Next, we'll generate `r n` data points using the $\sin(x)$ function in the range $x \in [0.2, 2\pi]$, imagining that that is the underlying real-like function we're interested in learning about. Some $N(0, 0.1^2)$ observation error is included too. The observations are denoted $z$ and the associated input values $x$. The observations produced are shown in Figure 2.
+Next, we'll generate `r n` data points using the $\sin(x)$ function in the range $x \in [0.2, 2\pi]$, imagining that that is the underlying real-like function we're interested in learning about. An observation error, randomly sampled from N$(0, 0.1^2)$, is added to each term. The 'observed' values are denoted $z$ and the associated input values $x$. The observations produced are shown in Figure 2, and the observation error added on visible by the fact that they tend not to sit exactly on the function.
 
 ```{r real life process function, include=F, cache=T}
 real_life_process <- function(x){
@@ -185,13 +185,11 @@ fig <- ggplot(f, aes(control_inputs, obs)) +
 fig
 ```
 
-To specify the posterior GP distribution, we need three further covariance matrices: $k(x, x)$, $k(x, x^*)$ and $k(x^*, x)$. 
-
-The posterior distribution is derived using Equation (2.19) in @rasmussen06:
+To specify the posterior GP distribution, we need three further covariance matrices: $k(x, x)$, $k(x, x^*)$ and $k(x^*, x)$ (recall that $k(\cdot, \cdot)$ was described in Section 1.1.1.). Using these four covaraince matrices, The posterior distribution is derived using Equation (2.19) in @rasmussen06:
 
 \begin{align*}
-\mathbf{f}^* | x^*, x, \mathbf{f} \sim N(k(x^*,x) k(x,x)^{-1}\mathbf{y}, \\
-k(x^*, x^*) - k(x^*,x)k(x,x)^{-1}k(x,x^*))
+\mathbf{f}^* | x^*, x, \mathbf{f} &\sim N(k(x^*,x) k(x,x)^{-1}\mathbf{y}, \\
+& \hspace{1cm} k(x^*, x^*) - k(x^*,x)k(x,x)^{-1}k(x,x^*))
 \end{align*}
 
 ```{r, include=F, cache=T}
@@ -264,7 +262,7 @@ fig2b
 obs_noise <- 0.1
 ```
 
-Since there is observation error, it might make more sense for the posterior draws *not* to pass through the observed points. This can be achieved by adding a constant (observation noise) term onto the diagonal of the covariance matrix. Normally distributed measurement errors sampled from N(0, `r var_meas_err`) were added to the simulated values. We'll add `r obs_noise` to the diagonal of the covariance matrix as observation noise.
+Since there is observation error, it might make more sense for the posterior draws *not* to pass through the observed points. This can be achieved by adding a constant (observation noise) term onto the diagonal of the covariance matrix. Recalling that normally distributed measurement errors sampled from N(0, `r var_meas_err`) were added to the simulated values, we'll add `r obs_noise` to the diagonal of the covariance matrix as observation noise.
 
 ```{r, include=F, cache=T}
 x <- f$control_inputs
@@ -280,7 +278,7 @@ cov.f.star <- k.xsxs - k.xsx%*%solve(k.xx.noise)%*%k.xxs
 n.samples_m <- 20
 ```
 
-Figure 4 replicates Figure 3 to incorporate this added noise, and now the mean function doesn't pass through the data points:
+Figure 4 replicates Figure 3 to incorporate this added noise, and now the mean function (thick red line) doesn't pass through the data points, and clearly the posterior uncertainty (thin solid red lines) has increased:
 
 ```{r, include=F, cache=T}
 values <- matrix(rep(0,length(x.star)*n.samples_m), ncol=n.samples_m)
@@ -358,6 +356,8 @@ fig2b
 
 ## The GP representation of a derivative of an unknown function represented by a GP
 
+Having fitted a GP to the data, and arrived at a posterior mean function that lies close to the real-life underlying function (Figure 4), we turn our attention to 
+
 The GP posterior with noise built in Section (2.2.2) will be used. To obtain the derivative of the posterior mean function, we first need an expression for the posterior mean function. Viewing the posterior mean function, $\bar{f}(x^*)$, as a linear combination of `r n` kernel functions, each centered at one of the `r n` training points, Equation (2.27) in @rasmussen06, states that, for any particular input value $x^*$, $$\bar{f}(x^*) =  \sum_{i=1}^{5} a_i k(x_i, x^*) $$
 where $\pmb{\alpha} = (k(x,x) +$ `r obs_noise`$I_5) ^{-1} \mathbf{y}.$ As such, the posterior mean function here will be
 \begin{align}
@@ -395,7 +395,7 @@ Led by Equation (2), differentiating the posterior mean function in Equation (1)
 \right],
 \end{align*}
 
-which is also plotted in Figure 5. Since the real, underlying function is $\sin(x)$, whose derivative is $\cos(x)$, these functions are included in Figure 5 too, for comparison.
+which is also plotted in Figure 5. The real, underlying function $\sin(x)$, and its derivative $\cos(x)$ are included in Figure 5 too (dashed lines) for comparison.
 
 ```{r, include=F, cache=T}
 alpha1 <- alpha[1]
@@ -448,10 +448,10 @@ fig2d
 
 # How to compare the alignment of two gradient fields
 
-Assume underlying function
+Assume an underlying function
 
 $$
-f(x) =   x_1^2 x_2
+f(x) = x_1^2 x_2
 $$
 
 with partial derivatives
@@ -484,13 +484,13 @@ Df1_x2 <- function(x1, x2){
   x1^2   
 }
 
-df1 <- expand.grid(x1=seq(-5, 5, 1), x2=seq(-5, 5, 1))
-df1$vx1 <- with(df1, Df1_x1(x1, x2))
-df1$vx2 <- with(df1, Df1_x2(x1, x2))
+vector_field_1 <- expand.grid(x1=seq(-5, 5, 1), x2=seq(-5, 5, 1))
+vector_field_1$vx1 <- with(vector_field_1, Df1_x1(x1, x2))
+vector_field_1$vx2 <- with(vector_field_1, Df1_x2(x1, x2))
 
 library(grid)
 arrow_scale <- 50
-ggplot(df1, aes(x = x1, y = x2)) +
+ggplot(vector_field_1, aes(x = x1, y = x2)) +
   geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
                arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
 
@@ -499,22 +499,20 @@ ggplot(df1, aes(x = x1, y = x2)) +
 Contrasting that with a field with exactly the opposite sign to this one:
 
 ```{r, echo=F}
-df2 <- df1
-df2$vx1 <- -(df2$vx1)
-df2$vx2 <- -(df2$vx2)
-ggplot(df2, aes(x = x1, y = x2)) +
+vector_field_2 <- vector_field_1
+vector_field_2$vx1 <- -(vector_field_2$vx1)
+vector_field_2$vx2 <- -(vector_field_2$vx2)
+ggplot(vector_field_2, aes(x = x1, y = x2)) +
   geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
                arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
 
 ```
 
+These two fields have perfect alignment, and differ only by the direction of the slope. We would want any measure to recognise the matching alignment here.
+
 ```{r}
-df1$vx1 * df2$vx1
+vector_field_1$vx1 * vector_field_2$vx1
 ```
-
-
-
-
 
 
 \newpage
