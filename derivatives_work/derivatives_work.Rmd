@@ -473,15 +473,15 @@ On an $11 \times 11$ grid with $x_1$ and $x_2$ values of $\{-5, -4, \dots, 5\}$,
 
 ```{r, echo=F}
 f1 <- expression(
-  x1^2*x2
+  (9 - x1^2 - x2^2)^(1/2)
 )
 # D(f1, "x1")
 # D(f1, "x2")
 Df1_x1 <- function(x1, x2){
-  2 * x1 * x2    
+  (1/2)*(9 - x1^2 - x2^2)^(-1/2) * (-2*x1)
 }
 Df1_x2 <- function(x1, x2){
-  x1^2   
+  (1/2)*(9 - x1^2 - x2^2)^(-1/2) * (-2*x2)
 }
 
 vector_field_1 <- expand.grid(x1=seq(-5, 5, 1), x2=seq(-5, 5, 1))
@@ -494,6 +494,47 @@ ggplot(vector_field_1, aes(x = x1, y = x2)) +
   geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
                arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
 
+```
+
+```{r}
+library(graphics)
+
+# Data
+x <- -10:10
+y <- -10:10
+z <- sqrt(outer(x ^ 2, y ^ 2, "+"))
+
+contour(x, y, z)
+
+# You can also type, the following
+# but the axes will be between 0 and 1
+contour(z)
+```
+
+
+To define the comparison measure, we'll work through the steps outlined in the correspondence between Jonathan and Manolis. Step 1. requires the computation of partial derivatives w.r.t. the parameters used the test the case.
+
+First we'll look at those pairs of fields which are an acceptable pairing, then those which aren't.
+
+## Acceptable pairings
+
+### Identical fields
+
+1. Done.
+2. Done.
+3. Normalise vectors of partial derivatives:
+
+```{r, echo=F}
+n_vector_field_1 <- vector_field_1
+for (i in 1:50) {
+  n_vector_field_1$vx1[i] <- vector_field_1$vx1[i] / sqrt((vector_field_1$vx1[i])^2 + (vector_field_1$vx2[i])^2)
+}
+for (i in 1:50) {
+  n_vector_field_1$vx2[i] <- vector_field_1$vx2[i] / sqrt((vector_field_1$vx1[i])^2 + (vector_field_1$vx2[i])^2)
+}
+
+library(dplyr)
+n_vector_field_1 <- n_vector_field_1 %>% replace(is.na(.), 0)
 ```
 
 Contrasting that with a field with exactly the opposite sign to this one:
