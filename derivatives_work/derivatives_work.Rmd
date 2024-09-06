@@ -448,11 +448,7 @@ fig2d
 
 # How to compare the alignment of two gradient fields
 
-Assume an underlying function
 
-$$
-f(x) = x_1^2 x_2
-$$
 
 with partial derivatives
 
@@ -471,17 +467,19 @@ $$
 
 On an $11 \times 11$ grid with $x_1$ and $x_2$ values of $\{-5, -4, \dots, 5\}$, this returns the following gradient vectors:
 
+
+
 ```{r, echo=F}
 f1 <- expression(
-  (9 - x1^2 - x2^2)^(1/2)
+  sqrt(x1^2 + x2^2)
 )
 # D(f1, "x1")
 # D(f1, "x2")
 Df1_x1 <- function(x1, x2){
-  (1/2)*(9 - x1^2 - x2^2)^(-1/2) * (-2*x1)
+  (1/2)*(x1^2 + x2^2)^(-1/2) * (2*x1)
 }
 Df1_x2 <- function(x1, x2){
-  (1/2)*(9 - x1^2 - x2^2)^(-1/2) * (-2*x2)
+  (1/2)*(x1^2 + x2^2)^(-1/2) * (2*x2)
 }
 
 vector_field_1 <- expand.grid(x1=seq(-5, 5, 1), x2=seq(-5, 5, 1))
@@ -489,14 +487,14 @@ vector_field_1$vx1 <- with(vector_field_1, Df1_x1(x1, x2))
 vector_field_1$vx2 <- with(vector_field_1, Df1_x2(x1, x2))
 
 library(grid)
-arrow_scale <- 50
+arrow_scale <- 1
 ggplot(vector_field_1, aes(x = x1, y = x2)) +
   geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
                arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
 
 ```
 
-```{r}
+```{r, message=F}
 library(graphics)
 
 # Data
@@ -511,18 +509,84 @@ contour(x, y, z)
 contour(z)
 ```
 
+\newpage
 
-To define the comparison measure, we'll work through the steps outlined in the correspondence between Jonathan and Manolis. Step 1. requires the computation of partial derivatives w.r.t. the parameters used the test the case.
+To define the comparison measure, we'll work through the steps outlined in the correspondence between Jonathan and Manolis. 
 
-First we'll look at those pairs of fields which are an acceptable pairing, then those which aren't.
+1. Computation of partial derivatives w.r.t. the parameters used the test the case.
 
-## Acceptable pairings
+We'll select the following function:
 
-### Identical fields
+Assume an underlying function
 
-1. Done.
-2. Done.
-3. Normalise vectors of partial derivatives:
+$$
+f(x) = \sqrt{(100 - x_1^2 - x_2^2)}
+$$
+
+which has the following slope field and contour plot:
+
+```{r, figures-side, fig.show="hold", out.width="50%", fig.height = 8, echo=F, fig.cap="The three samples of observations, of sizes 11, 31 and 61.", warning=F}
+f1 <- expression(
+  (100 - x1^2 - x2^2)^(1/2)
+)
+# D(f1, "x1")
+# D(f1, "x2")
+Df1_x1 <- function(x1, x2){
+  (1/2)*(100 - x1^2 - x2^2)^(-1/2) * (-2*x1)
+}
+Df1_x2 <- function(x1, x2){
+  (1/2)*(100 - x1^2 - x2^2)^(-1/2) * (-2*x2)
+}
+
+vector_field_1 <- expand.grid(x1=seq(-5, 5, 1), x2=seq(-5, 5, 1))
+vector_field_1$vx1 <- with(vector_field_1, Df1_x1(x1, x2))
+vector_field_1$vx2 <- with(vector_field_1, Df1_x2(x1, x2))
+
+library(grid)
+arrow_scale <- 1
+ggplot(vector_field_1, aes(x = x1, y = x2)) +
+  geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
+               arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
+
+library(graphics)
+
+# Data
+x <- -10:10
+y <- -10:10
+z <- sqrt(outer(x ^ 2, y ^ 2, "+"))
+
+contour(x, y, z)
+```
+
+```{r, echo=F, fig.width=5, fig.height=5}
+f1 <- expression(
+  (100 - x1^2 - x2^2)^(1/2)
+)
+# D(f1, "x1")
+# D(f1, "x2")
+Df1_x1 <- function(x1, x2){
+  (1/2)*(100 - x1^2 - x2^2)^(-1/2) * (-2*x1)
+}
+Df1_x2 <- function(x1, x2){
+  (1/2)*(100 - x1^2 - x2^2)^(-1/2) * (-2*x2)
+}
+
+vector_field_1 <- expand.grid(x1=seq(-5, 5, 1), x2=seq(-5, 5, 1))
+vector_field_1$vx1 <- with(vector_field_1, Df1_x1(x1, x2))
+vector_field_1$vx2 <- with(vector_field_1, Df1_x2(x1, x2))
+
+library(grid)
+arrow_scale <- 1
+ggplot(vector_field_1, aes(x = x1, y = x2)) +
+  geom_segment(aes(xend = x1+vx1/arrow_scale, yend = x2+vx2/arrow_scale),
+               arrow = arrow(length = unit(0.1, "cm")), linewidth = 0.25)
+```
+
+
+
+```{r, include=F, message=F}
+library(dplyr)
+```
 
 ```{r, echo=F}
 n_vector_field_1 <- vector_field_1
@@ -532,10 +596,19 @@ for (i in 1:50) {
 for (i in 1:50) {
   n_vector_field_1$vx2[i] <- vector_field_1$vx2[i] / sqrt((vector_field_1$vx1[i])^2 + (vector_field_1$vx2[i])^2)
 }
+```
 
-library(dplyr)
+```{r, include=F}
 n_vector_field_1 <- n_vector_field_1 %>% replace(is.na(.), 0)
 ```
+
+The remaining six steps require the selection of another function to compare that from Step 1 to. First we'll look at choices for this second function which offer an acceptable match, initially one which is a perfect match.
+
+2. Done.
+
+3. Normalise vectors of partial derivatives:
+
+
 
 Contrasting that with a field with exactly the opposite sign to this one:
 
