@@ -1,0 +1,7 @@
+MASS
+plyr
+reshape2
+ggplot2
+StanHeaders
+rstan
+gridExtra

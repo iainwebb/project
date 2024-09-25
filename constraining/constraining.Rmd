@@ -1,0 +1,193 @@
+---
+title: "Constraining"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: true
+urlcolor: blue
+bibliography: references.bib
+link-citations: yes
+linkcolor: blue
+nocite: |
+  
+
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{subfig}
+  - \usepackage{tcolorbox}
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+  - \usepackage[font=small,skip=0pt]{caption}
+---
+
+We have two functions that both take only variables $x_1$ and $x_2$ as inputs:
+
+- $y = f(x_1, x_2)$ is the \textbf{constraint} function. This is a function of whose output we are able to observe, and by doing so, at different values of $x_1$ and $x_2$, we hope to be able to constrain the output, reducing its a range to only plausible values based on observations.
+- $z = h(x_1, x_2)$ is the \textbf{forcing} function.
+
+We might hope that, having reduced the range of the output of $f$, the range of $h$ would also reduce. Below we explore how the alignment of the output surfaces of $f$ and $h$ with each other can affect whether this in practice happens.
+
+\vspace{0.75cm}
+\begin{tcolorbox}
+Start with $X_1, X_2 \sim U[0,1]$
+\end{tcolorbox}
+
+```{r, echo=F, }
+n <- 1000
+```
+
+We generate a random sample of size `r n` of each input variable, plotted in Figure 1.
+
+```{r, echo=F, }
+x_1 <- runif(n, 0, 5)
+x_2 <- runif(n, 0, 5)
+```
+
+```{r, echo=F, fig.width=3.5, fig.height=4, fig.cap="Random input variable settings.", fig.align="center", }
+plot(x_2 ~ x_1, pch=20)
+```
+
+\vspace{0.75cm}
+\begin{tcolorbox}
+Derive (using MC) $p(Z) \sim h(X_1, X_2)$
+\end{tcolorbox}
+
+We will assume that the forcing function is
+
+$$
+h(x_1, x_2) = \sqrt{100 - x_1^2 - x_2^2}.
+$$
+
+```{r, echo=F, }
+z_prior <- sqrt(100 - x_1^2 - x_2^2)
+df <- data.frame(x_1, x_2, z_prior)
+```
+
+This function is evaluated at the points selected by the random sample generated in the first step. Figure 2 illustrates how the value of $z$ is associated to the values of $x_1$ and $x_2$.
+
+```{r, echo=F, fig.width=4, fig.height=3, fig.align="center", fig.cap="The colour of the points in this plot show the value of $z$ at this point.", }
+library(ggplot2)
+ggplot(df, aes(x = x_1, y = x_2, colour = z_prior)) +
+  geom_point(shape=20) +
+  scale_colour_gradient(high = "#132B43", low = "#56B1F7") +
+  theme_bw()
+```
+
+A histogram of the values of $z$ resulting from the random sample provides an empirical distribution of $p(Z)$ -- see Figure 3.
+
+```{r, fig.cap="Approximate distribution for $p(Z)$.", echo=F, fig.width=4, fig.height=3}
+hist(z_prior, breaks = 50, freq=F, main="")
+# abline(v=sqrt(99))
+```
+
+\vspace{0.75cm}
+\begin{tcolorbox}
+Define $Y = f(X_1, X_2)$
+\end{tcolorbox}
+
+To start with we'll look at perfect alignment between the two output surfaces, and so
+
+$$
+f(x_1, x_2) = \sqrt{100 - x_1^2 - x_2^2}.
+$$
+
+\vspace{0.75cm}
+\begin{tcolorbox}
+Observe $\tilde{y} = Y + \epsilon$
+\end{tcolorbox}
+
+Let's start by observing one value of $Y$, at $(x_{1,1}, x_{2,1})$. We'll choose $(x_{1,1}, x_{2,1}) = (0.2, 0.2)$. Let $\epsilon \sim N(0, 0.1^2)$.
+
+```{r, echo=F}
+x_1_1 <- 2
+x_2_1 <- 2
+```
+
+```{r}
+y_tilde_1 <- sqrt(100 - (x_1_1-5)^2 - x_2_1^2) +  rnorm(1, 0, 0.1)
+y_tilde_1
+```
+
+\vspace{0.75cm}
+\begin{tcolorbox}
+Derive (using MCMC) $p(X_1, X_2 \: | \: \tilde{y})$
+\end{tcolorbox}
+
+```{r, rstan-load, include=F, message=F}
+library(rstan)
+```
+
+```{stan, output.var="constraining", include=T}
+data {
+  real y_tilde ; // observations
+}
+parameters {
+  real x1 ;
+  real x2 ;
+}
+model {
+  y_tilde ~ normal((100 - (x1-5)^2 - x2^2)^0.5, 0.1) ; // likelihood
+  x1 ~ uniform(0,5) ;
+  x2 ~ uniform(0,5) ;
+}
+generated quantities {
+  real z = (100 - x1^2 - x2^2)^0.5 ;
+}
+```
+
+```{r constraining-setup-and-stan-run, include=F, error=T}
+sampling_iterations <- 1e4
+
+# set data in a way Stan understands
+data <- list(y_tilde = y_tilde_1)
+
+fit <- sampling(constraining, 
+                data = data,
+                chains = 2, 
+                iter = sampling_iterations, 
+                warmup = sampling_iterations/2)
+chains <- rstan::extract(fit)
+```
+
+```{r}
+fit
+```
+
+```{r, echo=F}
+traceplot(fit, pars=c('x1', 'x2'))
+```
+
+```{r, echo=F, fig.width=3.5, fig.height=4, fig.cap="Random input variable settings.", fig.align="center", }
+plot(chains$x2[9001:10000] ~ chains$x1[9001:10000], pch=20, xlim = c(0,5), ylim = c(0,5))
+```
+
+\vspace{0.75cm}
+\begin{tcolorbox}
+Generate $p(Z \: | \: \tilde{y})$ and compare with $p(Z)$
+\end{tcolorbox}
+
+```{r, figures-side, fig.show="hold", out.width="50%", fig.height=4, echo=F, fig.cap="Prior (reprinted from Figure 3) and posterior draws of $z$, where $z = h(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}.$", warning=F}
+hist(z_prior, breaks = 50, freq=F, main="", xlim = c(5,10))
+
+hist(chains$z[9001:10000], breaks = 50, freq=F, main="", xlim = c(5,10))
+```
+
+\newpage
+
+```{r constraining-setup-and-stan-run-show-error, include=F}
+sampling_iterations <- 1e4
+
+# set data in a way Stan understands
+data <- list(y_tilde = y_tilde_1)
+
+fit <- sampling(constraining, 
+                data = data,
+                chains = 2, 
+                iter = sampling_iterations, 
+                warmup = sampling_iterations/2)
+chains <- rstan::extract(fit)
+```
+
+\newpage
+
+# Citations

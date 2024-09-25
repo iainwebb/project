@@ -138,7 +138,7 @@ fig2a <- ggplot(values,aes(x=x,y=value)) +
   geom_rect(xmin=-Inf, xmax=Inf, ymin=-2.25, ymax=2.25, fill="white") +
   geom_line(aes(color=variable), show.legend = FALSE) +
   theme_bw() +
-  scale_y_continuous(lim=c(-2,2), name="output, f(x)") +
+  scale_y_continuous(lim=c(-2,2), name="output, f(x_1, x_2)") +
   xlab("input, x")
 fig2a
 ```
@@ -253,7 +253,7 @@ fig2b <- ggplot(values,aes(x=x,y=value)) +
   geom_line(data=post_summ.no_noise,aes(x=x.star,y=lower), colour="black", linewidth=0.25) +
   geom_line(data=post_summ.no_noise,aes(x=x.star,y=upper), colour="black", linewidth=0.25) +
   theme_bw() +
-  scale_y_continuous(lim=c(-2,2), name="output, f(x)") +
+  scale_y_continuous(lim=c(-2,2), name="output, f(x_1, x_2)") +
   xlab("input, x") +
   geom_function(fun = function(x) sin(x), colour="black", linetype="dashed")
 fig2b
@@ -317,7 +317,7 @@ fig2b <- ggplot(values,aes(x=x,y=value)) +
   geom_line(data=post_summ.noise,aes(x=x.star,y=lower), colour="black", linewidth=0.25) +
   geom_line(data=post_summ.noise,aes(x=x.star,y=upper), colour="black", linewidth=0.25) +
   theme_bw() +
-  scale_y_continuous(lim=c(-2,2), name="output, f(x)") +
+  scale_y_continuous(lim=c(-2,2), name="output, f(x_1, x_2)") +
   xlab("input, x") +
   geom_function(fun = function(x) sin(x), colour="black", linetype="dashed") 
 # +
@@ -348,7 +348,7 @@ fig2b
 <!--   geom_errorbar(data=f,aes(x=x,y=NULL,ymin=y-2*sigma.n, ymax=y+2*sigma.n), width=0.2) + -->
 <!--   geom_point(data=f,aes(x=x,y=y)) + -->
 <!--   theme_bw() + -->
-<!--   scale_y_continuous(lim=c(-4,4), name="output, f(x)") + -->
+<!--   scale_y_continuous(lim=c(-4,4), name="output, f(x_1, x_2)") + -->
 <!--   xlab("input, x") -->
 <!-- gg -->
 
@@ -365,7 +365,7 @@ fig2b <- ggplot(values,aes(x=x,y=value)) +
   geom_line(data=post_summ.noise,aes(x=x.star,y=lower), colour="red", linewidth=0.25) +
   geom_line(data=post_summ.noise,aes(x=x.star,y=upper), colour="red", linewidth=0.25) +
   theme_bw() +
-  scale_y_continuous(lim=c(-2,2), name="output, f(x)") +
+  scale_y_continuous(lim=c(-2,2), name="output, f(x_1, x_2)") +
   xlab("input, x")
 fig2b
 ```
@@ -462,7 +462,7 @@ fig2d <- ggplot(values,aes(x=x,y=value)) +
   geom_function(fun = function(x) cos(x), colour="red", linetype="dashed") +
   geom_point(data=f,aes(x=control_inputs,y=obs)) +
   theme_bw() +
-  scale_y_continuous(lim=c(-2,2), name="output, f(x)") +
+  scale_y_continuous(lim=c(-2,2), name="output, f(x_1, x_2)") +
   xlab("input, x")
 fig2d
 ```
@@ -480,14 +480,14 @@ To define the comparison measure, we'll work through the steps \textcircled{\rai
 The function against which the others will be compared is:
 
 $$
-f(x) = \sqrt{100 - x_1^2 - x_2^2}
+f(x_1, x_2) = \sqrt{100 - x_1^2 - x_2^2}
 $$
 
 which has the following partial derivatives, with slope field and contour plot shown in Figure 7:
 
 $$
 \begin{aligned}
-\frac{\partial f(x)}{\partial x_1} &=
+\frac{\partial f(x_1, x_2)}{\partial x_1} &=
 -\frac{x_1}{\sqrt{100 - x_1^2 - x_2^2}} \\
 \frac{\partial (x)}{\partial x_2} &=
 -\frac{x_2}{\sqrt{100 - x_1^2 - x_2^2}}
@@ -503,7 +503,7 @@ Df1_x2 <- function(x1, x2){
 }
 ```
 
-```{r, figures-side, fig.show="hold", out.width="50%", fig.height=6.75, echo=F, fig.cap="Slope field and contour plot for the function $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$", warning=F}
+```{r, figures-side, fig.show="hold", out.width="50%", fig.height=6.75, echo=F, fig.cap="Slope field and contour plot for the function $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$", warning=F}
 f1 <- expression(
   (100 - x1^2 - x2^2)^(1/2)
 )
@@ -552,7 +552,7 @@ for (i in 1:36) {
 n_vector_field_1 <- n_vector_field_1 %>% replace(is.na(.), 0)
 ```
 
-The remaining six steps require the selection of another function (which we'll call $g(x)$) to compare to $f(x)$ from Step 1. First we'll look at choices for this second function which offer an acceptable match; initially one which is a perfect match.
+The remaining six steps require the selection of another function (which we'll call $g(x_1, x_2)$) to compare to $f(x_1, x_2)$ from Step 1. First we'll look at choices for this second function which offer an acceptable match; initially one which is a perfect match.
 
 \newpage
 
@@ -562,10 +562,10 @@ The remaining six steps require the selection of another function (which we'll c
 
 \textcircled{\raisebox{-0.9pt}{\textbf{2}}} \textbf{Repeat Step 1 for the second response surface.}
 
-Since we're matching $g(x)$ with $f(x)$, we have
+Since we're matching $g(x_1, x_2)$ with $f(x_1, x_2)$, we have
 
 $$
-g(x) = \sqrt{100 - x_1^2 - x_2^2}
+g(x_1, x_2) = \sqrt{100 - x_1^2 - x_2^2}
 $$
 
 ```{r, include=F}
@@ -581,14 +581,14 @@ which has the following partial derivatives, with slope field and contour plot s
 
 $$
 \begin{aligned}
-\frac{\partial g(x)}{\partial x_1} &=
+\frac{\partial g(x_1, x_2)}{\partial x_1} &=
 -\frac{x_1}{\sqrt{100 - x_1^2 - x_2^2}} \\
-\frac{\partial g(x)}{\partial x_2} &=
+\frac{\partial g(x_1, x_2)}{\partial x_2} &=
 -\frac{x_2}{\sqrt{100 - x_1^2 - x_2^2}}
 \end{aligned}
 $$
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x) = \\sqrt{100 - x_1^2 - x_2^2}$", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$", warning=F}
 f2 <- expression(
   (100 - x1^2 - x2^2)^(1/2)
 )
@@ -637,7 +637,7 @@ normal_vector_field_2$nvx2 <- vector_field_2$vx2 / sqrt((vector_field_2$vx1)^2 +
 normal_vector_field_2 <- replace(normal_vector_field_2, is.na(normal_vector_field_2), 0)
 ```
 
-```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - x_1^2 - x_2^2}$.", warning=F}
+```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$.", warning=F}
 library(grid)
 arrow_scale <- 1
 ggplot(normal_vector_field_1, aes(x = x1, y = x2)) +
@@ -670,9 +670,9 @@ measure_1 <- sum(abs(normal_vector_field_1$nvx1 * normal_vector_field_2$nvx1 + n
   length(vector_field_1$x1)
 ```
 
-For functions $f(x)$ and $g(x)$, whose contours plots are reprinted in Figure 10 below, we get a number of \textbf{`r round(measure_1,2)`}. This is extremely close to 1, which is want we would expect, since the contours match exactly. The only reason this is not exactly 1 is that at $(0,0)$, the dot product involves a (in fact two) zero vectors.
+For functions $f(x_1, x_2)$ and $g(x_1, x_2)$, whose contours plots are reprinted in Figure 10 below, we get a number of \textbf{`r round(measure_1,2)`}. This is extremely close to 1, which is want we would expect, since the contours match exactly. The only reason this is not exactly 1 is that at $(0,0)$, the dot product involves a (in fact two) zero vectors.
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - x_1^2 - x_2^2}$.", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$.", warning=F}
 # Data
 x <- -10:10
 y <- -10:10
@@ -694,10 +694,10 @@ contour(x, y, z_g, xlim = c(0,5), ylim = c(0,5), nlevels = 50)
 
 \textcircled{\raisebox{-0.9pt}{\textbf{2}}} \textbf{Repeat Step 1 for the second response surface.}
 
-$g(x)$ now takes the form:
+$g(x_1, x_2)$ now takes the form:
 
 $$
-g(x) = \sqrt{100 - (x_1-5)^2 - x_2^2}
+g(x_1, x_2) = \sqrt{100 - (x_1-5)^2 - x_2^2}
 $$
 
 ```{r, include=F}
@@ -713,14 +713,14 @@ which has the following partial derivatives, with slope field and contour plot s
 
 $$
 \begin{aligned}
-\frac{\partial g(x)}{\partial x_1} &=
+\frac{\partial g(x_1, x_2)}{\partial x_1} &=
 -\frac{x_1 - 5}{\sqrt{100 - (x_1-5)^2 - x_2^2}} \\
-\frac{\partial g(x)}{\partial x_2} &=
+\frac{\partial g(x_1, x_2)}{\partial x_2} &=
 -\frac{x_2}{\sqrt{100 - (x_1-5)^2 - x_2^2}}
 \end{aligned}
 $$
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x) = \\sqrt{100 - (x_1-5)^2 - x_2^2}$", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x_1, x_2) = \\sqrt{100 - (x_1-5)^2 - x_2^2}$", warning=F}
 f2 <- expression(
   (100 - x1^2 - x2^2)^(1/2)
 )
@@ -769,7 +769,7 @@ normal_vector_field_2$nvx2 <- vector_field_2$vx2 / sqrt((vector_field_2$vx1)^2 +
 normal_vector_field_2 <- replace(normal_vector_field_2, is.na(normal_vector_field_2), 0)
 ```
 
-```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - (x_1-5)^2 - x_2^2}$.", warning=F}
+```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - (x_1-5)^2 - x_2^2}$.", warning=F}
 library(grid)
 arrow_scale <- 1
 ggplot(normal_vector_field_1, aes(x = x1, y = x2)) +
@@ -802,9 +802,9 @@ measure_2 <- sum(abs(normal_vector_field_1$nvx1 * normal_vector_field_2$nvx1 + n
   length(vector_field_1$x1)
 ```
 
-For functions $f(x)$ and $g(x)$, whose contours plots are reprinted in Figure 13 below, we get a number of \textbf{`r round(measure_2,2)`}.
+For functions $f(x_1, x_2)$ and $g(x_1, x_2)$, whose contours plots are reprinted in Figure 13 below, we get a number of \textbf{`r round(measure_2,2)`}.
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - (x_1-5)^2 - x_2^2}$.", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - (x_1-5)^2 - x_2^2}$.", warning=F}
 # Data
 x <- -10:10
 y <- -10:10
@@ -824,10 +824,10 @@ contour(x, y, z_g, xlim = c(0,5), ylim = c(0,5), nlevels = 50)
 
 \textcircled{\raisebox{-0.9pt}{\textbf{2}}} \textbf{Repeat Step 1 for the second response surface.}
 
-$g(x)$ now takes the form:
+$g(x_1, x_2)$ now takes the form:
 
 $$
-g(x) = \sqrt{100 - x_1^2 - (x_2-5)^2}
+g(x_1, x_2) = \sqrt{100 - x_1^2 - (x_2-5)^2}
 $$
 
 ```{r, include=F}
@@ -843,14 +843,14 @@ which has the following partial derivatives, with slope field and contour plot s
 
 $$
 \begin{aligned}
-\frac{\partial g(x)}{\partial x_1} &=
+\frac{\partial g(x_1, x_2)}{\partial x_1} &=
 -\frac{x_1}{\sqrt{100 - x_1^2 - (x_2-5)^2}} \\
-\frac{\partial g(x)}{\partial x_2} &=
+\frac{\partial g(x_1, x_2)}{\partial x_2} &=
 -\frac{x_2-5}{\sqrt{100 - x_1^2 - (x_2-5)^2}}
 \end{aligned}
 $$
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x) = \\sqrt{100 - x_1^2 - (x_2-5)^2}$", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x_1, x_2) = \\sqrt{100 - x_1^2 - (x_2-5)^2}$", warning=F}
 f2 <- expression(
   (100 - x1^2 - x2^2)^(1/2)
 )
@@ -899,7 +899,7 @@ normal_vector_field_2$nvx2 <- vector_field_2$vx2 / sqrt((vector_field_2$vx1)^2 +
 normal_vector_field_2 <- replace(normal_vector_field_2, is.na(normal_vector_field_2), 0)
 ```
 
-```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - x_1^2 - (x_2-5)^2}$.", warning=F}
+```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - x_1^2 - (x_2-5)^2}$.", warning=F}
 library(grid)
 arrow_scale <- 1
 ggplot(normal_vector_field_1, aes(x = x1, y = x2)) +
@@ -932,9 +932,9 @@ measure_3 <- sum(abs(normal_vector_field_1$nvx1 * normal_vector_field_2$nvx1 + n
   length(vector_field_1$x1)
 ```
 
-For functions $f(x)$ and $g(x)$, whose contours plots are reprinted in Figure 16 below, we get a number of \textbf{`r round(measure_3,2)`}.
+For functions $f(x_1, x_2)$ and $g(x_1, x_2)$, whose contours plots are reprinted in Figure 16 below, we get a number of \textbf{`r round(measure_3,2)`}.
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - x_1^2 - (x_2-5)^2}$.", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - x_1^2 - (x_2-5)^2}$.", warning=F}
 # Data
 x <- -10:10
 y <- -10:10
@@ -952,10 +952,10 @@ contour(x, y, z_g, xlim = c(0,5), ylim = c(0,5), nlevels = 50)
 
 \textcircled{\raisebox{-0.9pt}{\textbf{2}}} \textbf{Repeat Step 1 for the second response surface.}
 
-$g(x)$ now takes the form:
+$g(x_1, x_2)$ now takes the form:
 
 $$
-g(x) = \sqrt{100 - (x_1-5)^2 - (x_2-5)^2}
+g(x_1, x_2) = \sqrt{100 - (x_1-5)^2 - (x_2-5)^2}
 $$
 
 ```{r, include=F}
@@ -971,14 +971,14 @@ which has the following partial derivatives, with slope field and contour plot s
 
 $$
 \begin{aligned}
-\frac{\partial g(x)}{\partial x_1} &=
+\frac{\partial g(x_1, x_2)}{\partial x_1} &=
 -\frac{x_1}{\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}} \\
-\frac{\partial g(x)}{\partial x_2} &=
+\frac{\partial g(x_1, x_2)}{\partial x_2} &=
 -\frac{x_2-5}{\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}}
 \end{aligned}
 $$
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x) = \\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}$", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Slope field and contour plot for the function $g(x_1, x_2) = \\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}$", warning=F}
 f2 <- expression(
   (100 - x1^2 - x2^2)^(1/2)
 )
@@ -1027,7 +1027,7 @@ normal_vector_field_2$nvx2 <- vector_field_2$vx2 / sqrt((vector_field_2$vx1)^2 +
 normal_vector_field_2 <- replace(normal_vector_field_2, is.na(normal_vector_field_2), 0)
 ```
 
-```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}$.", warning=F}
+```{r, fig.show="hold", out.width="40%", fig.height = 6, echo=F, fig.cap="Normalised slope fields for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}$.", warning=F}
 library(grid)
 arrow_scale <- 1
 ggplot(normal_vector_field_1, aes(x = x1, y = x2)) +
@@ -1060,9 +1060,9 @@ measure_4 <- sum(abs(normal_vector_field_1$nvx1 * normal_vector_field_2$nvx1 + n
   length(vector_field_1$x1)
 ```
 
-For functions $f(x)$ and $g(x)$, whose contours plots are reprinted in Figure 19 below, we get a number of \textbf{`r round(measure_4,2)`}.
+For functions $f(x_1, x_2)$ and $g(x_1, x_2)$, whose contours plots are reprinted in Figure 19 below, we get a number of \textbf{`r round(measure_4,2)`}.
 
-```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x) = \\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}$.", warning=F}
+```{r, fig.show="hold", out.width="50%", fig.height = 6.75, echo=F, fig.cap="Contour plots for the functions $f(x_1, x_2) = \\sqrt{100 - x_1^2 - x_2^2}$ and $g(x_1, x_2) = \\sqrt{100 - (x_1-5)^2 - (x_2-5)^2}$.", warning=F}
 # Data
 x <- -10:10
 y <- -10:10
@@ -1078,7 +1078,7 @@ contour(x, y, z_g, xlim = c(0,5), ylim = c(0,5), nlevels = 50)
 
 ## Summary
 
-On the next page, side-by-side contour plots for each pair of $f(x)$ and $g(x)$ from Sections 3.1 and 3.2 are presented, along with their value of the alignment measure.
+On the next page, side-by-side contour plots for each pair of $f(x_1, x_2)$ and $g(x_1, x_2)$ from Sections 3.1 and 3.2 are presented, along with their value of the alignment measure.
 
 \newpage
 

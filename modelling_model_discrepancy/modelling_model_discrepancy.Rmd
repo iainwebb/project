@@ -63,7 +63,7 @@ legend(0, 4,
 # plot_function(control_inputs_l, obs_errors_l, obs_l)
 ```
 
-This model, with $\hat{\theta}$ set equal to the true value of $\theta$, is plotted alongisde the equation representing the real-life process in Figure 1. A word on this straight-line model: Figure 1 shows us that in order for this model (green) to fit well any data produced by the real-life process (pink), the estimated value of $\theta$, which corresponds to the gradient of the green line would need to be lower that the true value of $0.65$.
+This model, with $\hat{\theta}$ set equal to the true value of $\theta$, is plotted alongside the equation representing the real-life process in Figure 1. A word on this straight-line model: Figure 1 shows us that in order for this model (green) to fit well any data produced by the real-life process (pink), the estimated value of $\theta$, which corresponds to the gradient of the green line would need to be lower that the true value of $0.65$.
 
 ```{r, include=F}
 n_s <- 11
